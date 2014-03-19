@@ -21,7 +21,7 @@ import static com.chenjishi.slidedemo.base.IntentUtils.KEY_PREVIEW_IMAGE;
 /**
  * Created by chenjishi on 14-3-17.
  */
-public class SlideActivity extends FragmentActivity {
+public class SlidingActivity extends FragmentActivity {
     private static final float MIN_SCALE = 0.85f;
 
     private View mPreview;
@@ -53,10 +53,10 @@ public class SlideActivity extends FragmentActivity {
         layoutParams.setMargins(0, marginTop, 0, 0);
         contentView.addView(inflater.inflate(layoutResID, null), layoutParams);
 
-        SlideLayout slideLayout = (SlideLayout) findViewById(R.id.slide_layout);
+        SlidingLayout slideLayout = (SlidingLayout) findViewById(R.id.slide_layout);
         slideLayout.setShadowResource(R.drawable.sliding_back_shadow);
         slideLayout.setSliderFadeColor(0x00000000);
-        slideLayout.setPanelSlideListener(new SlideLayout.SimpleSlideListener() {
+        slideLayout.setPanelSlideListener(new SlidingLayout.SimpleSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
                 final int sdkInt = Build.VERSION.SDK_INT;

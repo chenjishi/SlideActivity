@@ -25,8 +25,8 @@ import java.util.ArrayList;
 /**
  * Created by chenjishi on 14-3-17.
  */
-public class SlideLayout extends ViewGroup {
-    private static final String TAG = "SlideLayout";
+public class SlidingLayout extends ViewGroup {
+    private static final String TAG = "SlidingLayout";
 
     /**
      * If no fade color is given by default it will fade to 80% gray.
@@ -154,7 +154,7 @@ public class SlideLayout extends ViewGroup {
     }
 
     /**
-     * No-op stubs for {@link com.chenjishi.slidedemo.SlidingPaneLayout.PanelSlideListener}. If you only want to implement a subset
+     * No-op stubs for {@link com.chenjishi.slidedemo.base.SlidingLayout.SlideListener}. If you only want to implement a subset
      * of the listener methods you can extend this instead of implement the full interface.
      */
     public static class SimpleSlideListener implements SlideListener {
@@ -174,15 +174,15 @@ public class SlideLayout extends ViewGroup {
         }
     }
 
-    public SlideLayout(Context context) {
+    public SlidingLayout(Context context) {
         this(context, null);
     }
 
-    public SlideLayout(Context context, AttributeSet attrs) {
+    public SlidingLayout(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public SlideLayout(Context context, AttributeSet attrs, int defStyle) {
+    public SlidingLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         final float density = context.getResources().getDisplayMetrics().density;
@@ -1050,8 +1050,8 @@ public class SlideLayout extends ViewGroup {
             }
         }
 
-        return checkV && ViewCompat.canScrollHorizontally(v, -dx) ||
-                ((v instanceof ViewPager) && canViewPagerScrollHorizontally((ViewPager) v, -dx));
+        return checkV && (ViewCompat.canScrollHorizontally(v, -dx) ||
+                ((v instanceof ViewPager) && canViewPagerScrollHorizontally((ViewPager) v, -dx)));
     }
 
     boolean canViewPagerScrollHorizontally(ViewPager p, int dx) {
@@ -1268,11 +1268,11 @@ public class SlideLayout extends ViewGroup {
     }
 
     interface SlidingPanelLayoutImpl {
-        void invalidateChildRegion(SlideLayout parent, View child);
+        void invalidateChildRegion(SlidingLayout parent, View child);
     }
 
     static class SlidingPanelLayoutImplBase implements SlidingPanelLayoutImpl {
-        public void invalidateChildRegion(SlideLayout parent, View child) {
+        public void invalidateChildRegion(SlidingLayout parent, View child) {
             ViewCompat.postInvalidateOnAnimation(parent, child.getLeft(), child.getTop(),
                     child.getRight(), child.getBottom());
         }
@@ -1305,7 +1305,7 @@ public class SlideLayout extends ViewGroup {
         }
 
         @Override
-        public void invalidateChildRegion(SlideLayout parent, View child) {
+        public void invalidateChildRegion(SlidingLayout parent, View child) {
             if (mGetDisplayList != null && mRecreateDisplayList != null) {
                 try {
                     mRecreateDisplayList.setBoolean(child, true);
@@ -1324,7 +1324,7 @@ public class SlideLayout extends ViewGroup {
 
     static class SlidingPanelLayoutImplJBMR1 extends SlidingPanelLayoutImplBase {
         @Override
-        public void invalidateChildRegion(SlideLayout parent, View child) {
+        public void invalidateChildRegion(SlidingLayout parent, View child) {
             ViewCompat.setLayerPaint(child, ((LayoutParams) child.getLayoutParams()).dimPaint);
         }
     }
@@ -1339,7 +1339,7 @@ public class SlideLayout extends ViewGroup {
             copyNodeInfoNoChildren(info, superNode);
             superNode.recycle();
 
-            info.setClassName(SlideLayout.class.getName());
+            info.setClassName(SlidingLayout.class.getName());
             info.setSource(host);
 
             final ViewParent parent = ViewCompat.getParentForAccessibility(host);
@@ -1365,7 +1365,7 @@ public class SlideLayout extends ViewGroup {
         public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
             super.onInitializeAccessibilityEvent(host, event);
 
-            event.setClassName(SlideLayout.class.getName());
+            event.setClassName(SlidingLayout.class.getName());
         }
 
         @Override
@@ -1424,7 +1424,7 @@ public class SlideLayout extends ViewGroup {
 
         @Override
         public void run() {
-            if (mChildView.getParent() == SlideLayout.this) {
+            if (mChildView.getParent() == SlidingLayout.this) {
                 ViewCompat.setLayerType(mChildView, ViewCompat.LAYER_TYPE_NONE, null);
                 invalidateChildRegion(mChildView);
             }
