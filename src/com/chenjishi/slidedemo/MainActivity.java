@@ -77,6 +77,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Intent intent = new Intent(this, DetailActivity.class);
-        IntentUtils.startPreviewActivity(this, intent, 50);
+        IntentUtils.startPreviewActivity(this, intent);
     }
 }
