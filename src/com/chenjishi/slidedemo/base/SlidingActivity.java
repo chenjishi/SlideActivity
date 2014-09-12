@@ -105,7 +105,9 @@ public class SlidingActivity extends FragmentActivity {
 
         byte[] byteArray = getIntent().getByteArrayExtra(KEY_PREVIEW_IMAGE);
         if (null != byteArray && byteArray.length > 0) {
-            Bitmap bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 2;
+            Bitmap bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length, options);
             if (null != bmp) {
                 ((ImageView) mPreview).setImageBitmap(bmp);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
