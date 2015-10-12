@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +26,10 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         ListView listView = (ListView) findViewById(R.id.list_item);
         listView.setAdapter(new SimpleAdapter(this));
         listView.setOnItemClickListener(this);
+
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+
+        Log.i("test", metrics.widthPixels + " " + metrics.heightPixels);
     }
 
     private class SimpleAdapter extends BaseAdapter {
@@ -42,7 +48,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
         @Override
         public String getItem(int position) {
-            return "item " + position;
+            return "slide activity item index at " + position;
         }
 
         @Override
@@ -77,6 +83,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Intent intent = new Intent(this, DetailActivity.class);
-        IntentUtils.startPreviewActivity(this, intent);
+        IntentUtils.getInstance().startActivity(this, intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        IntentUtils.getInstance().recycle();
     }
 }
