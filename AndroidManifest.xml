@@ -20,5 +20,8 @@
                 android:name=".DetailActivity"
                 android:theme="@style/SlideAppTheme"
                 android:screenOrientation="portrait"/>
+        <activity android:name=".ImageActivity"
+                  android:theme="@style/SlideAppTheme"
+                  android:screenOrientation="portrait"/>
     </application>
 </manifest> 

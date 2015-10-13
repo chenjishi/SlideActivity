@@ -8,15 +8,16 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.view.AccessibilityDelegateCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.view.*;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.accessibility.AccessibilityEvent;
 
 import java.lang.reflect.Field;
@@ -24,44 +25,20 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class SlidingLayout extends ViewGroup {
-    /**
-     * Minimum velocity that will be detected as a fling
-     */
+
     private static final int MIN_FLING_VELOCITY = 400; // dips per second
 
     private Drawable mShadowDrawable;
 
-    /**
-     * True if a panel can slide with the current measurements
-     */
     private boolean mCanSlide;
 
-    /**
-     * The child view that can slide, if any.
-     */
     private View mSlideableView;
 
-    /**
-     * How far the panel is offset from its closed position.
-     * range [0, 1] where 0 = closed, 1 = open.
-     */
     private float mSlideOffset;
 
-    /**
-     * How far in pixels the slideable panel may move.
-     */
     private int mSlideRange;
 
-    /**
-     * A panel view is locked into internal scrolling or another condition that
-     * is preventing a drag.
-     */
     private boolean mIsUnableToDrag;
-
-    /**
-     * Distance in pixels to parallax the fixed pane by when fully closed
-     */
-    private int mParallaxBy;
 
     private float mInitialMotionX;
     private float mInitialMotionY;
@@ -70,11 +47,6 @@ public class SlidingLayout extends ViewGroup {
 
     private final ViewDragHelper mDragHelper;
 
-    /**
-     * Stores whether or not the pane was open the last time it was slideable.
-     * If open/close operations are invoked this state is modified. Used by
-     * instance state save/restore.
-     */
     private boolean mPreservedOpenState;
     private boolean mFirstLayout = true;
 
@@ -115,14 +87,12 @@ public class SlidingLayout extends ViewGroup {
 
         final float density = context.getResources().getDisplayMetrics().density;
 
-        final ViewConfiguration viewConfig = ViewConfiguration.get(context);
-
         setWillNotDraw(false);
 
         ViewCompat.setAccessibilityDelegate(this, new AccessibilityDelegate());
         ViewCompat.setImportantForAccessibility(this, ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_YES);
 
-        mDragHelper = ViewDragHelper.create(this, 0.5f, new DragHelperCallback());
+        mDragHelper = ViewDragHelper.create(this, 1.0f, new DragHelperCallback());
         mDragHelper.setMinVelocity(MIN_FLING_VELOCITY * density);
     }
 
@@ -137,11 +107,8 @@ public class SlidingLayout extends ViewGroup {
     }
 
     void updateObscuredViewsVisibility(View panel) {
-        final boolean isLayoutRtl = isLayoutRtlSupport();
-        final int startBound = isLayoutRtl ? (getWidth() - getPaddingRight()) :
-                getPaddingLeft();
-        final int endBound = isLayoutRtl ? getPaddingLeft() :
-                (getWidth() - getPaddingRight());
+        final int startBound = getPaddingLeft();
+        final int endBound = getWidth() - getPaddingRight();
         final int topBound = getPaddingTop();
         final int bottomBound = getHeight() - getPaddingBottom();
         final int left;
@@ -165,11 +132,9 @@ public class SlidingLayout extends ViewGroup {
                 break;
             }
 
-            final int clampedChildLeft = Math.max((isLayoutRtl ? endBound :
-                    startBound), child.getLeft());
+            final int clampedChildLeft = Math.max(startBound, child.getLeft());
             final int clampedChildTop = Math.max(topBound, child.getTop());
-            final int clampedChildRight = Math.min((isLayoutRtl ? startBound :
-                    endBound), child.getRight());
+            final int clampedChildRight = Math.min(endBound, child.getRight());
             final int clampedChildBottom = Math.min(bottomBound, child.getBottom());
             final int vis;
             if (clampedChildLeft >= left && clampedChildTop >= top &&
@@ -433,12 +398,11 @@ public class SlidingLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        final boolean isLayoutRtl = isLayoutRtlSupport();
         mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
 
         final int width = r - l;
-        final int paddingStart = isLayoutRtl ? getPaddingRight() : getPaddingLeft();
-        final int paddingEnd = isLayoutRtl ? getPaddingLeft() : getPaddingRight();
+        final int paddingStart = getPaddingLeft();
+        final int paddingEnd = getPaddingRight();
         final int paddingTop = getPaddingTop();
 
         final int childCount = getChildCount();
@@ -466,26 +430,16 @@ public class SlidingLayout extends ViewGroup {
                 final int range = Math.min(nextXStart,
                         width - paddingEnd) - xStart - margin;
                 mSlideRange = range;
-                final int lpMargin = isLayoutRtl ? lp.rightMargin : lp.leftMargin;
+                final int lpMargin = lp.leftMargin;
                 final int pos = (int) (range * mSlideOffset);
                 xStart += pos + lpMargin;
                 mSlideOffset = (float) pos / mSlideRange;
-            } else if (mCanSlide && mParallaxBy != 0) {
-                offset = (int) ((1 - mSlideOffset) * mParallaxBy);
-                xStart = nextXStart;
             } else {
                 xStart = nextXStart;
             }
 
-            final int childRight;
-            final int childLeft;
-            if (isLayoutRtl) {
-                childRight = width - xStart + offset;
-                childLeft = childRight - childWidth;
-            } else {
-                childLeft = xStart - offset;
-                childRight = childLeft + childWidth;
-            }
+            final int childLeft = xStart - offset;
+            final int childRight = childLeft + childWidth;
 
             final int childTop = paddingTop;
             final int childBottom = childTop + child.getMeasuredHeight();
@@ -495,11 +449,6 @@ public class SlidingLayout extends ViewGroup {
         }
 
         if (mFirstLayout) {
-            if (mCanSlide) {
-                if (mParallaxBy != 0) {
-                    parallaxOtherViews(mSlideOffset);
-                }
-            }
             updateObscuredViewsVisibility(mSlideableView);
         }
 
@@ -607,83 +556,6 @@ public class SlidingLayout extends ViewGroup {
         return wantTouchEvents;
     }
 
-    private boolean closePane(View pane, int initialVelocity) {
-        if (mFirstLayout || smoothSlideTo(0.f, initialVelocity)) {
-            mPreservedOpenState = false;
-            return true;
-        }
-        return false;
-    }
-
-    private boolean openPane(View pane, int initialVelocity) {
-        if (mFirstLayout || smoothSlideTo(1.f, initialVelocity)) {
-            mPreservedOpenState = true;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @deprecated Renamed to {@link #openPane()} - this method is going away soon!
-     */
-    @Deprecated
-    public void smoothSlideOpen() {
-        openPane();
-    }
-
-    /**
-     * Open the sliding pane if it is currently slideable. If first layout
-     * has already completed this will animate.
-     *
-     * @return true if the pane was slideable and is now open/in the process of opening
-     */
-    public boolean openPane() {
-        return openPane(mSlideableView, 0);
-    }
-
-    /**
-     * @deprecated Renamed to {@link #closePane()} - this method is going away soon!
-     */
-    @Deprecated
-    public void smoothSlideClosed() {
-        closePane();
-    }
-
-    /**
-     * Close the sliding pane if it is currently slideable. If first layout
-     * has already completed this will animate.
-     *
-     * @return true if the pane was slideable and is now closed/in the process of closing
-     */
-    public boolean closePane() {
-        return closePane(mSlideableView, 0);
-    }
-
-    /**
-     * Check if the layout is completely open. It can be open either because the slider
-     * itself is open revealing the left pane, or if all content fits without sliding.
-     *
-     * @return true if sliding panels are completely open
-     */
-    public boolean isOpen() {
-        return !mCanSlide || mSlideOffset == 1;
-    }
-
-    /**
-     * @return true if content in this layout can be slid open and closed
-     * @deprecated Renamed to {@link #isSlideable()} - this method is going away soon!
-     */
-    @Deprecated
-    public boolean canSlide() {
-        return mCanSlide;
-    }
-
-    /**
-     * Check if the content in this layout cannot fully fit side by side and therefore
-     * the content pane can be slid back and forth.
-     *
-     * @return true if content in this layout can be slid open and closed
-     */
     public boolean isSlideable() {
         return mCanSlide;
     }
@@ -694,21 +566,13 @@ public class SlidingLayout extends ViewGroup {
             mSlideOffset = 0;
             return;
         }
-        final boolean isLayoutRtl = isLayoutRtlSupport();
         final LayoutParams lp = (LayoutParams) mSlideableView.getLayoutParams();
 
-        int childWidth = mSlideableView.getWidth();
-        final int newStart = isLayoutRtl ? getWidth() - newLeft - childWidth : newLeft;
-
-        final int paddingStart = isLayoutRtl ? getPaddingRight() : getPaddingLeft();
-        final int lpMargin = isLayoutRtl ? lp.rightMargin : lp.leftMargin;
+        final int paddingStart = getPaddingLeft();
+        final int lpMargin = lp.leftMargin;
         final int startBound = paddingStart + lpMargin;
 
-        mSlideOffset = (float) (newStart - startBound) / mSlideRange;
-
-        if (mParallaxBy != 0) {
-            parallaxOtherViews(mSlideOffset);
-        }
+        mSlideOffset = (float) (newLeft - startBound) / mSlideRange;
 
         dispatchOnPanelSlide(mSlideableView);
     }
@@ -722,11 +586,8 @@ public class SlidingLayout extends ViewGroup {
         if (mCanSlide && !lp.slideable && mSlideableView != null) {
             // Clip against the slider; no sense drawing what will immediately be covered.
             canvas.getClipBounds(mTmpRect);
-            if (isLayoutRtlSupport()) {
-                mTmpRect.left = Math.max(mTmpRect.left, mSlideableView.getRight());
-            } else {
-                mTmpRect.right = Math.min(mTmpRect.right, mSlideableView.getLeft());
-            }
+            mTmpRect.right = Math.min(mTmpRect.right, mSlideableView.getLeft());
+
             canvas.clipRect(mTmpRect);
         }
 
@@ -760,18 +621,10 @@ public class SlidingLayout extends ViewGroup {
             return false;
         }
 
-        final boolean isLayoutRtl = isLayoutRtlSupport();
         final LayoutParams lp = (LayoutParams) mSlideableView.getLayoutParams();
 
-        int x;
-        if (isLayoutRtl) {
-            int startBound = getPaddingRight() + lp.rightMargin;
-            int childWidth = mSlideableView.getWidth();
-            x = (int) (getWidth() - (startBound + slideOffset * mSlideRange + childWidth));
-        } else {
-            int startBound = getPaddingLeft() + lp.leftMargin;
-            x = (int) (startBound + slideOffset * mSlideRange);
-        }
+        int startBound = getPaddingLeft() + lp.leftMargin;
+        int x = (int) (startBound + slideOffset * mSlideRange);
 
         if (mDragHelper.smoothSlideViewTo(mSlideableView, x, mSlideableView.getTop())) {
             setAllChildrenVisible();
@@ -818,21 +671,6 @@ public class SlidingLayout extends ViewGroup {
         mShadowDrawable.draw(c);
     }
 
-    private void parallaxOtherViews(float slideOffset) {
-        final boolean isLayoutRtl = isLayoutRtlSupport();
-        final int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            final View v = getChildAt(i);
-            if (v == mSlideableView) continue;
-
-            final int oldOffset = mParallaxBy;
-            final int newOffset = (int) ((1 - slideOffset) * mParallaxBy);
-            final int dx = oldOffset - newOffset;
-
-            v.offsetLeftAndRight(isLayoutRtl ? -dx : dx);
-        }
-    }
-
     public void setSlideable(boolean b) {
         mCanSlide = b;
     }
@@ -857,29 +695,6 @@ public class SlidingLayout extends ViewGroup {
     @Override
     public ViewGroup.LayoutParams generateLayoutParams(AttributeSet attrs) {
         return new LayoutParams(getContext(), attrs);
-    }
-
-    @Override
-    protected Parcelable onSaveInstanceState() {
-        Parcelable superState = super.onSaveInstanceState();
-
-        SavedState ss = new SavedState(superState);
-        ss.isOpen = isSlideable() ? isOpen() : mPreservedOpenState;
-
-        return ss;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Parcelable state) {
-        SavedState ss = (SavedState) state;
-        super.onRestoreInstanceState(ss.getSuperState());
-
-        if (ss.isOpen) {
-            openPane();
-        } else {
-            closePane();
-        }
-        mPreservedOpenState = ss.isOpen;
     }
 
     private class DragHelperCallback extends ViewDragHelper.Callback {
@@ -921,19 +736,9 @@ public class SlidingLayout extends ViewGroup {
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
             final LayoutParams lp = (LayoutParams) releasedChild.getLayoutParams();
 
-            int left;
-            if (isLayoutRtlSupport()) {
-                int startToRight = getPaddingRight() + lp.rightMargin;
-                if (xvel < 0 || (xvel == 0 && mSlideOffset > 0.5f)) {
-                    startToRight += mSlideRange;
-                }
-                int childWidth = mSlideableView.getWidth();
-                left = getWidth() - startToRight - childWidth;
-            } else {
-                left = getPaddingLeft() + lp.leftMargin;
-                if (xvel > 0 || (xvel == 0 && mSlideOffset > 0.5f)) {
-                    left += mSlideRange;
-                }
+            int left = getPaddingLeft() + lp.leftMargin;
+            if (xvel > 0 || (xvel == 0 && mSlideOffset > 0.5f)) {
+                left += mSlideRange;
             }
             mDragHelper.settleCapturedViewAt(left, releasedChild.getTop());
             invalidate();
@@ -948,17 +753,9 @@ public class SlidingLayout extends ViewGroup {
         public int clampViewPositionHorizontal(View child, int left, int dx) {
             final LayoutParams lp = (LayoutParams) mSlideableView.getLayoutParams();
 
-            final int newLeft;
-            if (isLayoutRtlSupport()) {
-                int startBound = getWidth() -
-                        (getPaddingRight() + lp.rightMargin + mSlideableView.getWidth());
-                int endBound = startBound - mSlideRange;
-                newLeft = Math.max(Math.min(left, startBound), endBound);
-            } else {
-                int startBound = getPaddingLeft() + lp.leftMargin;
-                int endBound = startBound + mSlideRange;
-                newLeft = Math.min(Math.max(left, startBound), endBound);
-            }
+            int startBound = getPaddingLeft() + lp.leftMargin;
+            int endBound = startBound + mSlideRange;
+            final int newLeft = Math.min(Math.max(left, startBound), endBound);
             return newLeft;
         }
 
@@ -1022,36 +819,6 @@ public class SlidingLayout extends ViewGroup {
             a.recycle();
         }
 
-    }
-
-    static class SavedState extends BaseSavedState {
-        boolean isOpen;
-
-        SavedState(Parcelable superState) {
-            super(superState);
-        }
-
-        private SavedState(Parcel in) {
-            super(in);
-            isOpen = in.readInt() != 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            out.writeInt(isOpen ? 1 : 0);
-        }
-
-        public static final Creator<SavedState> CREATOR =
-                new Creator<SavedState>() {
-                    public SavedState createFromParcel(Parcel in) {
-                        return new SavedState(in);
-                    }
-
-                    public SavedState[] newArray(int size) {
-                        return new SavedState[size];
-                    }
-                };
     }
 
     interface SlidingPanelLayoutImpl {
@@ -1214,9 +981,5 @@ public class SlidingLayout extends ViewGroup {
             }
             mPostedRunnables.remove(this);
         }
-    }
-
-    private boolean isLayoutRtlSupport() {
-        return ViewCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_RTL;
     }
 }

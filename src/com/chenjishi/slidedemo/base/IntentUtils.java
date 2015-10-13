@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.util.Log;
 import android.view.View;
 
 /**
@@ -35,15 +36,25 @@ public class IntentUtils {
         return mBitmap;
     }
 
-    public void startActivity(Context context, final Intent intent) {
+    public void startActivity(final Context context, final Intent intent) {
         final View v = ((Activity) context).findViewById(android.R.id.content);
 
         if (null == mBitmap) {
-            mBitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.RGB_565);
+            /**
+             * screen capture by ARGB_8888 consume 2 times memory than RGB_565,
+             * but image quality is good than RGB_565, if you want efficiency more
+             * than effect, please change this to RGB_565
+             */
+            mBitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
         }
 
-        v.draw(new Canvas(mBitmap));
+        v.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                v.draw(new Canvas(mBitmap));
+                context.startActivity(intent);
 
-        context.startActivity(intent);
+            }
+        }, 100);
     }
 }

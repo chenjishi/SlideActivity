@@ -1,14 +1,15 @@
 package com.chenjishi.slidedemo.base;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import com.chenjishi.slidedemo.R;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -23,14 +24,13 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
     private boolean hideTitle = false;
     private int titleResId = -1;
 
-    @SuppressLint("NewApi")
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(R.layout.slide_layout);
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         LayoutInflater inflater = LayoutInflater.from(this);
-        mInitOffset = - (1.f / 3) * metrics.widthPixels;
+        mInitOffset = -(1.f / 3) * metrics.widthPixels;
 
         mPreview = findViewById(R.id.iv_preview);
         FrameLayout contentView = (FrameLayout) findViewById(R.id.content_view);
@@ -51,9 +51,37 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
         slideLayout.setSlidingListener(this);
 
         Bitmap bitmap = IntentUtils.getInstance().getBitmap();
+        //TODO optimize memory usage, here we copy a bitmap from last Activity,
+        //TODO it's not memory efficiency, because when you open 5 Activity,
+        //TODO there have 5 bitmap in memory, maybe I can consider bitmap reuse
+        //TODO such as draw bitmap in View
+
         if (null != bitmap) {
-            mPreview.setBackground(new BitmapDrawable(bitmap));
+            /**
+             * screen capture by ARGB_8888 consume 2 times memory than RGB_565,
+             * but image quality is good than RGB_565, if you want efficiency more
+             * than effect, please change this to RGB_565
+             */
+            Bitmap bmp = bitmap.copy(Bitmap.Config.ARGB_8888, false);
+
+            if (Build.VERSION.SDK_INT >= 16) {
+                mPreview.setBackground(new BitmapDrawable(bmp));
+            } else {
+                mPreview.setBackgroundDrawable(new BitmapDrawable(bmp));
+            }
         }
+    }
+
+    @Override
+    public void setTitle(CharSequence title) {
+        super.setTitle(title);
+        ((TextView) findViewById(R.id.label_title)).setText(title);
+    }
+
+    @Override
+    public void setTitle(int titleId) {
+        super.setTitle(titleId);
+        ((TextView) findViewById(R.id.label_title)).setText(titleId);
     }
 
     @Override
@@ -66,11 +94,6 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
             finish();
             overridePendingTransition(0, 0);
         }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
     }
 
     protected void setContentView(int layoutResID, int titleResId) {
