@@ -9,3 +9,30 @@ If you have any idea to improve this project, any commits welcomed:)
   <img src="https://raw.github.com/chenjishi/SlideActivity/master/demo.gif" 
   alt="slideback" height="400" width="240"/>
 </p>
+
+##Usage
+
+###1.Extend SlidingActivity
+```
+public class DetailActivity extends SlidingActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_detail);
+        setTitle("DetailActivity");
+    }
+}
+```
+
+###2.Start your Intent
+```
+public void onButtonClicked(View v) {
+        Intent intent = new Intent(this, ImageActivity.class);
+        IntentUtils.getInstance().startActivity(this, intent);
+    }
+```
+
+### All Done!
+
+
