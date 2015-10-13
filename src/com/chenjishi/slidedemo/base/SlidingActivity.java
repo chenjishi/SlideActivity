@@ -30,7 +30,7 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         LayoutInflater inflater = LayoutInflater.from(this);
-        mInitOffset = -(1 - 0.75f) * metrics.widthPixels / 2.f;
+        mInitOffset = - (1.f / 3) * metrics.widthPixels;
 
         mPreview = findViewById(R.id.iv_preview);
         FrameLayout contentView = (FrameLayout) findViewById(R.id.content_view);
