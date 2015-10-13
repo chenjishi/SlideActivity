@@ -89,6 +89,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        IntentUtils.getInstance().recycle();
+        IntentUtils.getInstance().clear();
     }
 }

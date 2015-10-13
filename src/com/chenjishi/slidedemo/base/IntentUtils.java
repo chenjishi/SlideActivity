@@ -20,9 +20,10 @@ public class IntentUtils {
 
     }
 
-    public void recycle() {
+    public void clear() {
         if (null != mBitmap && !mBitmap.isRecycled()) {
             mBitmap.recycle();
+            mBitmap = null;
         }
     }
 
