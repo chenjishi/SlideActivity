@@ -24,6 +24,8 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
     private boolean hideTitle = false;
     private int titleResId = -1;
 
+    private String mBitmapId;
+
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(R.layout.slide_layout);
@@ -50,26 +52,23 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
         slideLayout.setShadowResource(R.drawable.sliding_back_shadow);
         slideLayout.setSlidingListener(this);
 
-        Bitmap bitmap = IntentUtils.getInstance().getBitmap();
-        //TODO optimize memory usage, here we copy a bitmap from last Activity,
-        //TODO it's not memory efficiency, because when you open 5 Activity,
-        //TODO there have 5 bitmap in memory, maybe I can consider bitmap reuse
-        //TODO such as draw bitmap in View
-
+        mBitmapId = getIntent().getExtras().getString("bitmap_id");
+        Bitmap bitmap = IntentUtils.getInstance().getBitmap(mBitmapId);
         if (null != bitmap) {
-            /**
-             * screen capture by ARGB_8888 consume 2 times memory than RGB_565,
-             * but image quality is good than RGB_565, if you want efficiency more
-             * than effect, please change this to RGB_565
-             */
-            Bitmap bmp = bitmap.copy(Bitmap.Config.ARGB_8888, false);
-
             if (Build.VERSION.SDK_INT >= 16) {
-                mPreview.setBackground(new BitmapDrawable(bmp));
+                mPreview.setBackground(new BitmapDrawable(bitmap));
             } else {
-                mPreview.setBackgroundDrawable(new BitmapDrawable(bmp));
+                mPreview.setBackgroundDrawable(new BitmapDrawable(bitmap));
             }
+
+            IntentUtils.getInstance().setIsDisplayed(mBitmapId, true);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        IntentUtils.getInstance().setIsDisplayed(mBitmapId, false);
     }
 
     @Override
