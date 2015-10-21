@@ -8,8 +8,7 @@ If you have any idea to improve this project, any commits welcomed:)
 download demo in Google Play [SlideActivity](https://play.google.com/store/apps/details?id=com.chenjishi.slidedemo&hl=zh-CN)
 ##ScreenShot
 <p align="center">
-  <img src="https://raw.github.com/chenjishi/SlideActivity/master/demo.gif" 
-  alt="slideback" height="400" width="240"/>
+  <img src="demo.gif" alt="slideback" height="400" width="240"/>
 </p>
 
 ##Usage
