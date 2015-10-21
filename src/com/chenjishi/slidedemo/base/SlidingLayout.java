@@ -43,6 +43,8 @@ public class SlidingLayout extends ViewGroup {
     private float mInitialMotionX;
     private float mInitialMotionY;
 
+    private float mEdgeSize;
+
     private SlidingListener mSlidingListener;
 
     private final ViewDragHelper mDragHelper;
@@ -169,6 +171,10 @@ public class SlidingLayout extends ViewGroup {
             return bg.getOpacity() == PixelFormat.OPAQUE;
         }
         return false;
+    }
+
+    public void setEdgeSize(int offset) {
+        mEdgeSize = offset;
     }
 
     @Override
@@ -530,6 +536,12 @@ public class SlidingLayout extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (mEdgeSize > 0) {
+            if (ev.getAction() == MotionEvent.ACTION_DOWN && ev.getX() > mEdgeSize) {
+                return false;
+            }
+        }
+
         if (!mCanSlide) {
             return super.onTouchEvent(ev);
         }

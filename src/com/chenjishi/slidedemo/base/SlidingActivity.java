@@ -51,6 +51,7 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
         final SlidingLayout slideLayout = (SlidingLayout) findViewById(R.id.slide_layout);
         slideLayout.setShadowResource(R.drawable.sliding_back_shadow);
         slideLayout.setSlidingListener(this);
+        slideLayout.setEdgeSize((int) (metrics.density * 20));
 
         mBitmapId = getIntent().getExtras().getString("bitmap_id");
         Bitmap bitmap = IntentUtils.getInstance().getBitmap(mBitmapId);
