@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.chenjishi.slidedemo.base.SlidingLayout
+<com.chenjishi.slidedemo.base.SlideLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/slide_layout"
         android:layout_width="match_parent"
@@ -12,5 +12,5 @@
             android:id="@+id/content_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-</com.chenjishi.slidedemo.base.SlidingLayout>
+</com.chenjishi.slidedemo.base.SlideLayout>
 

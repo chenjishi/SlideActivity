@@ -4,12 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import com.chenjishi.slidedemo.base.IntentUtils;
-import com.chenjishi.slidedemo.base.SlidingActivity;
+import com.chenjishi.slidedemo.base.SlideActivity;
 
 /**
  * Created by chenjishi on 14-3-17.
  */
-public class DetailActivity extends SlidingActivity {
+public class DetailActivity extends SlideActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
