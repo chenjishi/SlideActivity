@@ -24,8 +24,6 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
     private boolean hideTitle = false;
     private int titleResId = -1;
 
-    private String mBitmapId;
-
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(R.layout.slide_layout);
@@ -53,23 +51,14 @@ public class SlidingActivity extends FragmentActivity implements SlidingLayout.S
         slideLayout.setSlidingListener(this);
         slideLayout.setEdgeSize((int) (metrics.density * 20));
 
-        mBitmapId = getIntent().getExtras().getString("bitmap_id");
-        Bitmap bitmap = IntentUtils.getInstance().getBitmap(mBitmapId);
+        Bitmap bitmap = IntentUtils.getInstance().getBitmap();
         if (null != bitmap) {
             if (Build.VERSION.SDK_INT >= 16) {
                 mPreview.setBackground(new BitmapDrawable(bitmap));
             } else {
                 mPreview.setBackgroundDrawable(new BitmapDrawable(bitmap));
             }
-
-            IntentUtils.getInstance().setIsDisplayed(mBitmapId, true);
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        IntentUtils.getInstance().setIsDisplayed(mBitmapId, false);
     }
 
     @Override
