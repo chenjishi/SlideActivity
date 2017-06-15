@@ -1,8 +1,8 @@
 package com.chenjishi.slidedemo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -14,12 +14,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.chenjishi.slidedemo.base.IntentUtils;
 
-public class MainActivity extends Activity implements AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_main);
 
         ListView listView = (ListView) findViewById(R.id.list_item);
         listView.setAdapter(new SimpleAdapter(this));
