@@ -4,21 +4,27 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:padding="8dp"
               android:background="#F0F0F0">
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#33b5e5">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="#333"
+                android:textStyle="bold"
+                android:text="DetailActivity"
+                android:layout_centerInParent="true"/>
+    </RelativeLayout>
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="If there was ever a game that could cope with a few graphical imperfections, it'd be a
-            frenetic multiplayer shooter like Titanfall. But flaws do visibly exist on the Xbox One version of
-             that game, and Eurogamer has highlighted them in a side-by-side video with the PC version. You
-             can see the impact of the console's lower resolution (1408 x 792) and weaker anti-aliasing, versus
-             the 1080p experience offered by a mid-range Windows gaming rig (with a six-core AMD FX CPU and a NVIDIA
-             GTX 760 graphics card). More noticeable than any of that, however, is the issue of screen tearing:
-             Horizontal slashes that happen when the game drops below the holy grail of 60 frames per second that
-              its creators intended. Like Eurogamer, we really don't think this does significant damage to Titanfall's
-              overall experience -- we're still glued to it -- but this is one more notable instance of a mismatch
-              between what developers wanted to achieve in a next-gen title, and what Microsoft's console was able to deliver."
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:lineSpacingExtra="4dp"
+            android:text="Alien is a 1979 British-American science-fiction horror film directed by Ridley Scott, and starring Sigourney Weaver, Tom Skerritt, Veronica Cartwright, Harry Dean Stanton, John Hurt, Ian Holm and Yaphet Kotto. The film's title refers to a highly aggressive extraterrestrial creature that stalks and attacks the crew of a spaceship. Dan O'Bannon wrote the screenplay from a story he wrote with Ronald Shusett, drawing influence from previous works of science fiction and horror. "
             android:textSize="16dp"
             android:textColor="#333"/>
     <Button

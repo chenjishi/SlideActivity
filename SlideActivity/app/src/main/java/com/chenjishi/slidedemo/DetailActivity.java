@@ -15,7 +15,6 @@ public class DetailActivity extends SlideActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        setTitle("DetailActivity");
     }
 
     public void onButtonClicked(View v) {
