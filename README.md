@@ -1,7 +1,7 @@
 SlideActivity
 =============
 
-A iOS like slide back Activity framework, slide to exit Activity. Now the demo use ARGB_8888 to save bitmap when capture screen, memory consume will be 2 times larger than RGB_565, but captured screen more better than RGB_565, if you want efficency most, change ARGB_8888 to RGB_565.
+A iOS like slide back Activity framework, slide left edge to exit current activity. 
 
 If you have any idea to improve this project, any commits welcomed:)
 
@@ -13,9 +13,9 @@ download demo in Google Play [SlideActivity](https://play.google.com/store/apps/
 
 ##Usage
 
-###1.Extend SlidingActivity
+###1.Extend SlideActivity
 ```
-public class DetailActivity extends SlidingActivity {
+public class DetailActivity extends SlideActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,11 +26,11 @@ public class DetailActivity extends SlidingActivity {
 }
 ```
 
-###2.Start your Intent
+###2.Start Activity By Slide Method
 ```
 public void onButtonClicked(View v) {
         Intent intent = new Intent(this, ImageActivity.class);
-        IntentUtils.getInstance().startActivity(this, intent);
+        Slide.getInstance().startActivity(this, intent);
     }
 ```
 
