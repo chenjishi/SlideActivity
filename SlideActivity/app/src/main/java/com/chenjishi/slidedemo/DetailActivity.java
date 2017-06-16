@@ -3,7 +3,7 @@ package com.chenjishi.slidedemo;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import com.chenjishi.slidedemo.base.IntentUtils;
+import com.chenjishi.slidedemo.base.Slide;
 import com.chenjishi.slidedemo.base.SlideActivity;
 
 /**
@@ -20,6 +20,6 @@ public class DetailActivity extends SlideActivity {
 
     public void onButtonClicked(View v) {
         Intent intent = new Intent(this, ImageActivity.class);
-        IntentUtils.getInstance().startActivity(this, intent);
+        Slide.getInstance().startActivity(this, intent);
     }
 }

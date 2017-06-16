@@ -11,7 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.chenjishi.slidedemo.base.IntentUtils;
+import com.chenjishi.slidedemo.base.Slide;
 
 import static android.support.v7.widget.RecyclerView.Adapter;
 import static android.support.v7.widget.RecyclerView.ViewHolder;
@@ -51,8 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        Slide.getInstance().clear();
         super.onDestroy();
-        IntentUtils.getInstance().clear();
     }
 
     private class SimpleAdapter extends Adapter<ItemViewHolder> {
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-            IntentUtils.getInstance().startActivity(MainActivity.this, intent);
+            Slide.getInstance().startActivity(MainActivity.this, intent);
         }
     };
 }

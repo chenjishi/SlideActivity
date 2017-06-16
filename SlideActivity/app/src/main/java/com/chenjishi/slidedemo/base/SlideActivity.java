@@ -51,12 +51,12 @@ public class SlideActivity extends FragmentActivity implements SlideLayout.Slidi
         slideLayout.setSlidingListener(this);
         slideLayout.setEdgeSize((int) (metrics.density * 20));
 
-        Bitmap bitmap = IntentUtils.getInstance().getBitmap();
-        if (null != bitmap) {
+        Bitmap bmp = Slide.getInstance().peekBitmap();
+        if (null != bmp) {
             if (Build.VERSION.SDK_INT >= 16) {
-                mPreview.setBackground(new BitmapDrawable(bitmap));
+                mPreview.setBackground(new BitmapDrawable(bmp));
             } else {
-                mPreview.setBackgroundDrawable(new BitmapDrawable(bitmap));
+                mPreview.setBackgroundDrawable(new BitmapDrawable(bmp));
             }
         }
     }
@@ -93,5 +93,11 @@ public class SlideActivity extends FragmentActivity implements SlideLayout.Slidi
     protected void setContentView(int layoutResID, boolean hideTitle) {
         this.hideTitle = hideTitle;
         setContentView(layoutResID);
+    }
+
+    @Override
+    protected void onDestroy() {
+        Slide.getInstance().popBitmap();
+        super.onDestroy();
     }
 }
