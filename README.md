@@ -20,8 +20,7 @@ public class DetailActivity extends SlideActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-        setTitle("DetailActivity");
+        setContentView(R.layout.activity_detail);        
     }
 }
 ```
