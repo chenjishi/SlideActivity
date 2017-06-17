@@ -45,7 +45,7 @@ public class SlideLayout extends ViewGroup {
 
     private float mEdgeSize;
 
-    private SlidingListener mSlidingListener;
+    private SlideListener mSlideListener;
 
     private final ViewDragHelper mDragHelper;
 
@@ -70,10 +70,11 @@ public class SlideLayout extends ViewGroup {
         }
     }
 
-    public interface SlidingListener {
+    public interface SlideListener {
 
         void onPanelSlide(View panel, float slideOffset);
 
+        void onViewCaptured();
     }
 
     public SlideLayout(Context context) {
@@ -98,13 +99,13 @@ public class SlideLayout extends ViewGroup {
         mDragHelper.setMinVelocity(MIN_FLING_VELOCITY * density);
     }
 
-    public void setSlidingListener(SlidingListener listener) {
-        mSlidingListener = listener;
+    public void setSlidingListener(SlideListener listener) {
+        mSlideListener = listener;
     }
 
     void dispatchOnPanelSlide(View panel) {
-        if (mSlidingListener != null) {
-            mSlidingListener.onPanelSlide(panel, mSlideOffset);
+        if (mSlideListener != null) {
+            mSlideListener.onPanelSlide(panel, mSlideOffset);
         }
     }
 
@@ -713,10 +714,7 @@ public class SlideLayout extends ViewGroup {
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            if (mIsUnableToDrag) {
-                return false;
-            }
-
+            if (mIsUnableToDrag) return false;
             return ((LayoutParams) child.getLayoutParams()).slideable;
         }
 
@@ -734,6 +732,7 @@ public class SlideLayout extends ViewGroup {
 
         @Override
         public void onViewCaptured(View capturedChild, int activePointerId) {
+            if (null != mSlideListener) mSlideListener.onViewCaptured();
             // Make all child views visible in preparation for sliding things around
             setAllChildrenVisible();
         }

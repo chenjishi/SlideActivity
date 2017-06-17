@@ -14,10 +14,12 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 /**
  * Created by chenjishi on 14-3-17.
  */
-public class SlideActivity extends FragmentActivity implements SlideLayout.SlidingListener {
+public class SlideActivity extends FragmentActivity implements SlideLayout.SlideListener {
     private ImageView mPreview;
 
     private float mInitOffset;
+
+    private boolean mImageSet;
 
     @Override
     public void setContentView(int layoutResID) {
@@ -35,9 +37,16 @@ public class SlideActivity extends FragmentActivity implements SlideLayout.Slidi
         slideLayout.setShadowResource(R.drawable.sliding_back_shadow);
         slideLayout.setSlidingListener(this);
         slideLayout.setEdgeSize((int) (metrics.density * 20));
+    }
 
+    @Override
+    public void onViewCaptured() {
+        if (mImageSet) return;
         Bitmap bmp = Slide.getInstance().peekBitmap();
-        if (null != bmp) mPreview.setImageBitmap(bmp);
+        if (null != bmp) {
+            mPreview.setImageBitmap(bmp);
+            mImageSet = true;
+        }
     }
 
     @Override

@@ -20,5 +20,6 @@ public class DetailActivity extends SlideActivity {
     public void onButtonClicked(View v) {
         Intent intent = new Intent(this, ImageActivity.class);
         Slide.getInstance().startActivity(this, intent);
+
     }
 }
