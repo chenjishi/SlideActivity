@@ -54,7 +54,17 @@ public class Slide {
         mReusableBitmaps.add(new SoftReference<Bitmap>(bitmap));
     }
 
-    public void startActivity(Context context, Intent intent) {
+    public void startActivity(final Context context, Intent intent) {
+        new Thread() {
+            @Override
+            public void run() {
+                captureScreen(context);
+            }
+        }.start();
+        context.startActivity(intent);
+    }
+
+    private void captureScreen(Context context) {
         View v = ((Activity) context).findViewById(android.R.id.content);
         Bitmap bmp = null;
 
@@ -78,7 +88,5 @@ public class Slide {
             v.draw(new Canvas(bmp));
             stack.push(bmp);
         }
-
-        context.startActivity(intent);
     }
 }
