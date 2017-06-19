@@ -55,12 +55,7 @@ public class Slide {
     }
 
     public void startActivity(final Context context, Intent intent) {
-        new Thread() {
-            @Override
-            public void run() {
-                captureScreen(context);
-            }
-        }.start();
+        captureScreen(context);
         context.startActivity(intent);
     }
 
