@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.view.View;
 
 import java.lang.ref.SoftReference;
@@ -17,7 +14,6 @@ import java.util.*;
  * Created by jishichen on 2017/6/16.
  */
 public class Slide {
-    private static final int MSG_CAPTURE = 233;
 
     private static final Slide INSTANCE = new Slide();
 
@@ -59,53 +55,42 @@ public class Slide {
     }
 
     public void startActivity(final Context context, Intent intent) {
-        startCapture(context);
+        captureScreen(context);
         context.startActivity(intent);
-    }
-
-    private void startCapture(final Context context) {
-        new Thread() {
-            private Handler mHandler;
-
-            @Override
-            public void run() {
-                Looper.prepare();
-                mHandler = new Handler() {
-                    @Override
-                    public void handleMessage(Message msg) {
-                        captureScreen(context);
-                        getLooper().quit();
-                    }
-                };
-                mHandler.sendEmptyMessage(MSG_CAPTURE);
-                Looper.loop();
-            }
-        }.start();
     }
 
     private void captureScreen(Context context) {
         View v = ((Activity) context).findViewById(android.R.id.content);
         Bitmap bmp = null;
 
+        /**
+         * find reusable bitmap, sometimes bitmap maybe recycled by soft reference,
+         * so we need to check item.get() to see if bitmap exist
+         */
         if (null != mReusableBitmaps && !mReusableBitmaps.isEmpty()) {
             synchronized (mReusableBitmaps) {
                 final Iterator<SoftReference<Bitmap>> iterator = mReusableBitmaps.iterator();
                 while (iterator.hasNext()) {
-                    bmp = iterator.next().get();
-                    if (null != bmp) {
-                        iterator.remove();
-                        break;
+                    SoftReference<Bitmap> item = iterator.next();
+                    if (null != item) {
+                        bmp = item.get();
+                        if (null != bmp) {
+                            iterator.remove();
+                            break;
+                        } else {
+                            iterator.remove();
+                        }
                     }
                 }
             }
-        } else {
+        }
+
+        if (null == bmp) {
             bmp = Bitmap.createBitmap(v.getWidth(), v.getHeight(),
                     Bitmap.Config.ARGB_8888);
         }
 
-        if (null != bmp) {
-            v.draw(new Canvas(bmp));
-            stack.push(bmp);
-        }
+        v.draw(new Canvas(bmp));
+        stack.push(bmp);
     }
 }

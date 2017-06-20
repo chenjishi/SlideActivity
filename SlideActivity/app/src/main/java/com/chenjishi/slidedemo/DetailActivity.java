@@ -11,6 +11,9 @@ import com.chenjishi.slidedemo.base.SlideActivity;
  */
 public class DetailActivity extends SlideActivity {
 
+    private final static int MSG_QUIT = 233;
+    private final static int MSG_SHOW = 234;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
