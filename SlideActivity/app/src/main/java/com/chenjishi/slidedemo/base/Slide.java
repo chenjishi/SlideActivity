@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 
 import java.lang.ref.SoftReference;
@@ -14,6 +17,7 @@ import java.util.*;
  * Created by jishichen on 2017/6/16.
  */
 public class Slide {
+    private static final int MSG_CAPTURE = 233;
 
     private static final Slide INSTANCE = new Slide();
 
@@ -55,8 +59,28 @@ public class Slide {
     }
 
     public void startActivity(final Context context, Intent intent) {
-        captureScreen(context);
+        startCapture(context);
         context.startActivity(intent);
+    }
+
+    private void startCapture(final Context context) {
+        new Thread() {
+            private Handler mHandler;
+
+            @Override
+            public void run() {
+                Looper.prepare();
+                mHandler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        captureScreen(context);
+                        getLooper().quit();
+                    }
+                };
+                mHandler.sendEmptyMessage(MSG_CAPTURE);
+                Looper.loop();
+            }
+        }.start();
     }
 
     private void captureScreen(Context context) {
