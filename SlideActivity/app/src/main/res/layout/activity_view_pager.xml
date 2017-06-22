@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
@@ -15,27 +14,11 @@
                 android:textSize="18sp"
                 android:textColor="#333"
                 android:textStyle="bold"
-                android:text="DetailActivity"
+                android:text="ViewPagerActivity"
                 android:layout_centerInParent="true"/>
     </RelativeLayout>
-    <TextView
+    <android.support.v4.view.ViewPager
+            android:id="@+id/view_pager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:lineSpacingExtra="4dp"
-            android:text="@string/description"
-            android:textSize="16dp"
-            android:textColor="#333"/>
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:textColor="@android:color/black"
-            android:layout_gravity="center_horizontal"
-            android:onClick="onButtonClicked"
-            android:layout_marginTop="12dp"
-            android:textSize="17sp"
-            android:text="Image"/>
+            android:layout_height="match_parent"/>
 </LinearLayout>

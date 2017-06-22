@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">SlideActivity</string>
+    <string name="description">Alien is a 1979 British-American science-fiction horror
+        film directed by Ridley Scott, and starring Sigourney Weaver, Tom Skerritt, Veronica
+        Cartwright, Harry Dean Stanton, John Hurt, Ian Holm and Yaphet Kotto. The film\'s title
+        refers to a highly aggressive extraterrestrial creature that stalks and attacks the crew
+        of a spaceship. Dan O\'Bannon wrote the screenplay from a story he wrote with Ronald Shusett,
+        drawing influence from previous works of science fiction and horror. </string>
 </resources>

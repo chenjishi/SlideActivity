@@ -11,6 +11,7 @@ import android.os.Build;
 import android.support.v4.view.AccessibilityDelegateCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
@@ -44,6 +45,8 @@ public class SlideLayout extends ViewGroup {
     private float mInitialMotionY;
 
     private float mEdgeSize;
+
+    private ViewPager mViewPager;
 
     private SlideListener mSlideListener;
 
@@ -527,6 +530,14 @@ public class SlideLayout extends ViewGroup {
                     mIsUnableToDrag = true;
                     return false;
                 }
+
+                if (null != mViewPager && mInitialMotionX > mEdgeSize) {
+                    return false;
+                }
+
+                if (null != mViewPager && canViewPagerScroll(mViewPager, (int) adx)) {
+                    return false;
+                }
             }
         }
 
@@ -567,6 +578,18 @@ public class SlideLayout extends ViewGroup {
         }
 
         return wantTouchEvents;
+    }
+
+    public void setViewPager(ViewPager viewPager) {
+        mViewPager = viewPager;
+    }
+
+    private boolean canViewPagerScroll(ViewPager p, int dx) {
+        if (dx == 0) return false;
+
+        final int index = p.getCurrentItem();
+        return !(dx > 0 && index <= 0 || dx < 0
+                && index >= p.getAdapter().getCount() - 1);
     }
 
     public boolean isSlideable() {

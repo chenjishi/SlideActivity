@@ -17,6 +17,19 @@
                 android:textStyle="bold"
                 android:text="SlideActivity"
                 android:layout_centerInParent="true"/>
+        <TextView
+                android:id="@+id/btn_view_pager"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:background="@drawable/highlight_bkg"
+                android:layout_alignParentRight="true"
+                android:gravity="center_vertical"
+                android:textSize="15sp"
+                android:textColor="#333"
+                android:textStyle="bold"
+                android:text="ViewPager"/>
     </RelativeLayout>
     <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"

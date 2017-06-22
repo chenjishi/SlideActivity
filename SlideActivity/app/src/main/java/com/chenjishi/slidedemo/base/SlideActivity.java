@@ -2,6 +2,7 @@ package com.chenjishi.slidedemo.base;
 
 import android.graphics.Bitmap;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,9 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
  * Created by chenjishi on 14-3-17.
  */
 public class SlideActivity extends FragmentActivity implements SlideLayout.SlideListener {
+
+    private SlideLayout mSlideLayout;
+
     private ImageView mPreview;
 
     private float mInitOffset;
@@ -33,10 +37,17 @@ public class SlideActivity extends FragmentActivity implements SlideLayout.Slide
         contentView.addView(LayoutInflater.from(this).inflate(layoutResID, null),
                 new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
-        SlideLayout slideLayout = (SlideLayout) findViewById(R.id.slide_layout);
-        slideLayout.setShadowResource(R.drawable.sliding_back_shadow);
-        slideLayout.setSlidingListener(this);
-        slideLayout.setEdgeSize((int) (metrics.density * 20));
+        mSlideLayout = (SlideLayout) findViewById(R.id.slide_layout);
+        mSlideLayout.setShadowResource(R.drawable.sliding_back_shadow);
+        mSlideLayout.setSlidingListener(this);
+        mSlideLayout.setEdgeSize((int) (metrics.density * 20));
+    }
+
+    //handle conflict with view pager
+    protected void setScrollableViewId(int id) {
+        View v = findViewById(id);
+        if (null == v || !(v instanceof ViewPager)) return;
+        mSlideLayout.setViewPager((ViewPager) v);
     }
 
     @Override

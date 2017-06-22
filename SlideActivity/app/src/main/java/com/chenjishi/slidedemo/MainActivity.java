@@ -16,7 +16,7 @@ import com.chenjishi.slidedemo.base.Slide;
 import static android.support.v7.widget.RecyclerView.Adapter;
 import static android.support.v7.widget.RecyclerView.ViewHolder;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +47,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        findViewById(R.id.btn_view_pager).setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        Slide.getInstance().startActivity(this, new Intent(this, ViewPagerActivity.class));
     }
 
     @Override
