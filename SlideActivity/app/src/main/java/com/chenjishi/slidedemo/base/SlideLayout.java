@@ -383,7 +383,7 @@ public class SlideLayout extends ViewGroup {
                             child.measure(childWidthSpec, childHeightSpec);
                         }
                     } else {
-                        // Distribute the extra width proportionally similar to LinearLayout
+                        // Distribute the extra width proportionally  similar to LinearLayout
                         final int widthToDistribute = Math.max(0, widthRemaining);
                         final int addedWidth = (int) (lp.weight * widthToDistribute / weightSum);
                         final int childWidthSpec = MeasureSpec.makeMeasureSpec(
@@ -516,6 +516,12 @@ public class SlideLayout extends ViewGroup {
                 mInitialMotionX = x;
                 mInitialMotionY = y;
 
+                if (x > mEdgeSize) {
+                    mDragHelper.cancel();
+                    mIsUnableToDrag = true;
+                    return false;
+                }
+
                 break;
             }
 
@@ -532,10 +538,14 @@ public class SlideLayout extends ViewGroup {
                 }
 
                 if (null != mViewPager && mInitialMotionX > mEdgeSize) {
+                    mDragHelper.cancel();
+                    mIsUnableToDrag = true;
                     return false;
                 }
 
                 if (null != mViewPager && canViewPagerScroll(mViewPager, (int) adx)) {
+                    mDragHelper.cancel();
+                    mIsUnableToDrag = true;
                     return false;
                 }
             }
@@ -548,15 +558,7 @@ public class SlideLayout extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (mEdgeSize > 0) {
-            if (ev.getAction() == MotionEvent.ACTION_DOWN && ev.getX() > mEdgeSize) {
-                return false;
-            }
-        }
-
-        if (!mCanSlide) {
-            return super.onTouchEvent(ev);
-        }
+        if (!mCanSlide) return super.onTouchEvent(ev);
 
         mDragHelper.processTouchEvent(ev);
 
