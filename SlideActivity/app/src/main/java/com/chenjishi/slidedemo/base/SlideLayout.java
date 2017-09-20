@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -55,8 +54,6 @@ public class SlideLayout extends ViewGroup {
     private boolean mPreservedOpenState;
     private boolean mFirstLayout = true;
 
-    private final Rect mTmpRect = new Rect();
-
     private final ArrayList<DisableLayerRunnable> mPostedRunnables =
             new ArrayList<DisableLayerRunnable>();
 
@@ -102,6 +99,10 @@ public class SlideLayout extends ViewGroup {
         mDragHelper.setMinVelocity(MIN_FLING_VELOCITY * density);
     }
 
+    public void setCanSlide(boolean b) {
+        mCanSlide = b;
+    }
+
     public void setSlidingListener(SlideListener listener) {
         mSlideListener = listener;
     }
@@ -110,71 +111,6 @@ public class SlideLayout extends ViewGroup {
         if (mSlideListener != null) {
             mSlideListener.onPanelSlide(panel, mSlideOffset);
         }
-    }
-
-    void updateObscuredViewsVisibility(View panel) {
-        final int startBound = getPaddingLeft();
-        final int endBound = getWidth() - getPaddingRight();
-        final int topBound = getPaddingTop();
-        final int bottomBound = getHeight() - getPaddingBottom();
-        final int left;
-        final int right;
-        final int top;
-        final int bottom;
-        if (panel != null && viewIsOpaque(panel)) {
-            left = panel.getLeft();
-            right = panel.getRight();
-            top = panel.getTop();
-            bottom = panel.getBottom();
-        } else {
-            left = right = top = bottom = 0;
-        }
-
-        for (int i = 0, childCount = getChildCount(); i < childCount; i++) {
-            final View child = getChildAt(i);
-
-            if (child == panel) {
-                // There are still more children above the panel but they won't be affected.
-                break;
-            }
-
-            final int clampedChildLeft = Math.max(startBound, child.getLeft());
-            final int clampedChildTop = Math.max(topBound, child.getTop());
-            final int clampedChildRight = Math.min(endBound, child.getRight());
-            final int clampedChildBottom = Math.min(bottomBound, child.getBottom());
-            final int vis;
-            if (clampedChildLeft >= left && clampedChildTop >= top &&
-                    clampedChildRight <= right && clampedChildBottom <= bottom) {
-                vis = INVISIBLE;
-            } else {
-                vis = VISIBLE;
-            }
-            child.setVisibility(vis);
-        }
-    }
-
-    void setAllChildrenVisible() {
-        for (int i = 0, childCount = getChildCount(); i < childCount; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() == INVISIBLE) {
-                child.setVisibility(VISIBLE);
-            }
-        }
-    }
-
-    private static boolean viewIsOpaque(View v) {
-        if (ViewCompat.isOpaque(v)) return true;
-
-        // View#isOpaque didn't take all valid opaque scrollbar modes into account
-        // before API 18 (JB-MR2). On newer devices rely solely on isOpaque above and return false
-        // here. On older devices, check the view's background drawable directly as a fallback.
-        if (Build.VERSION.SDK_INT >= 18) return false;
-
-        final Drawable bg = v.getBackground();
-        if (bg != null) {
-            return bg.getOpacity() == PixelFormat.OPAQUE;
-        }
-        return false;
     }
 
     public void setEdgeSize(int offset) {
@@ -200,207 +136,72 @@ public class SlideLayout extends ViewGroup {
     }
 
     @Override
+    public void addView(View child) {
+        if (getChildCount() > 0) {
+            throw new IllegalStateException("SlideLayout can host only one direct child");
+        }
+        super.addView(child);
+    }
+
+    @Override
+    public void addView(View child, int index) {
+        if (getChildCount() > 0) {
+            throw new IllegalStateException("SlideLayout can host only one direct child");
+        }
+        super.addView(child, index);
+    }
+
+    @Override
+    public void addView(View child, int width, int height) {
+        if (getChildCount() > 0) {
+            throw new IllegalStateException("SlideLayout can host only one direct child");
+        }
+        super.addView(child, width, height);
+    }
+
+    @Override
+    public void addView(View child, ViewGroup.LayoutParams params) {
+        if (getChildCount() > 0) {
+            throw new IllegalStateException("SlideLayout can host only one direct child");
+        }
+        super.addView(child, params);
+    }
+
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        if (widthMode != MeasureSpec.EXACTLY) {
+            throw new IllegalStateException("Width must have an exact value or MATCH_PARENT");
+        }
+
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        if (widthMode != MeasureSpec.EXACTLY) {
-            if (isInEditMode()) {
-                // Don't crash the layout editor. Consume all of the space if specified
-                // or pick a magic number from thin air otherwise.
-                // TODO Better communication with tools of this bogus state.
-                // It will crash on a real device.
-                if (widthMode == MeasureSpec.AT_MOST) {
-                    widthMode = MeasureSpec.EXACTLY;
-                } else if (widthMode == MeasureSpec.UNSPECIFIED) {
-                    widthMode = MeasureSpec.EXACTLY;
-                    widthSize = 300;
-                }
-            } else {
-                throw new IllegalStateException("Width must have an exact value or MATCH_PARENT");
-            }
-        } else if (heightMode == MeasureSpec.UNSPECIFIED) {
-            if (isInEditMode()) {
-                // Don't crash the layout editor. Pick a magic number from thin air instead.
-                // TODO Better communication with tools of this bogus state.
-                // It will crash on a real device.
-                if (heightMode == MeasureSpec.UNSPECIFIED) {
-                    heightMode = MeasureSpec.AT_MOST;
-                    heightSize = 300;
-                }
-            } else {
-                throw new IllegalStateException("Height must not be UNSPECIFIED");
-            }
+        if (heightMode != MeasureSpec.EXACTLY) {
+            throw new IllegalStateException("Width must have an exact value or MATCH_PARENT");
         }
 
-        int layoutHeight = 0;
-        int maxLayoutHeight = -1;
-        switch (heightMode) {
-            case MeasureSpec.EXACTLY:
-                layoutHeight = maxLayoutHeight = heightSize - getPaddingTop() - getPaddingBottom();
-                break;
-            case MeasureSpec.AT_MOST:
-                maxLayoutHeight = heightSize - getPaddingTop() - getPaddingBottom();
-                break;
-        }
-
-        float weightSum = 0;
-        boolean canSlide = false;
-        final int widthAvailable = widthSize - getPaddingLeft() - getPaddingRight();
-        int widthRemaining = widthAvailable;
         final int childCount = getChildCount();
 
         // We'll find the current one below.
         mSlideableView = null;
 
-        // First pass. Measure based on child LayoutParams width/height.
-        // Weight will incur a second pass.
         for (int i = 0; i < childCount; i++) {
             final View child = getChildAt(i);
             final LayoutParams lp = (LayoutParams) child.getLayoutParams();
 
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-
-            if (lp.weight > 0) {
-                weightSum += lp.weight;
-
-                // If we have no width, weight is the only contributor to the final size.
-                // Measure this view on the weight pass only.
-                if (lp.width == 0) continue;
-            }
-
-            int childWidthSpec;
-            final int horizontalMargin = lp.leftMargin + lp.rightMargin;
-            if (lp.width == LayoutParams.WRAP_CONTENT) {
-                childWidthSpec = MeasureSpec.makeMeasureSpec(widthAvailable - horizontalMargin,
-                        MeasureSpec.AT_MOST);
-            } else if (lp.width == LayoutParams.FILL_PARENT) {
-                childWidthSpec = MeasureSpec.makeMeasureSpec(widthAvailable - horizontalMargin,
-                        MeasureSpec.EXACTLY);
-            } else {
-                childWidthSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
-            }
-
-            int childHeightSpec;
-            if (lp.height == LayoutParams.WRAP_CONTENT) {
-                childHeightSpec = MeasureSpec.makeMeasureSpec(maxLayoutHeight, MeasureSpec.AT_MOST);
-            } else if (lp.height == LayoutParams.FILL_PARENT) {
-                childHeightSpec = MeasureSpec.makeMeasureSpec(maxLayoutHeight, MeasureSpec.EXACTLY);
-            } else {
-                childHeightSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
-            }
+            int childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
+            int childHeightSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
 
             child.measure(childWidthSpec, childHeightSpec);
-            final int childWidth = child.getMeasuredWidth();
-            final int childHeight = child.getMeasuredHeight();
-
-            if (heightMode == MeasureSpec.AT_MOST && childHeight > layoutHeight) {
-                layoutHeight = Math.min(childHeight, maxLayoutHeight);
-            }
-
-            widthRemaining -= childWidth;
-            canSlide |= lp.slideable = widthRemaining < 0;
-            if (lp.slideable) {
-                mSlideableView = child;
-            }
+            lp.slideable = true;
+            mSlideableView = child;
         }
 
-        // Resolve weight and make sure non-sliding panels are smaller than the full screen.
-        if (canSlide || weightSum > 0) {
-            final int fixedPanelWidthLimit = widthAvailable;
+        setMeasuredDimension(widthSize, heightSize);
+        mCanSlide = true;
 
-            for (int i = 0; i < childCount; i++) {
-                final View child = getChildAt(i);
-
-                if (child.getVisibility() == GONE) {
-                    continue;
-                }
-
-                final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-
-                if (child.getVisibility() == GONE) {
-                    continue;
-                }
-
-                final boolean skippedFirstPass = lp.width == 0 && lp.weight > 0;
-                final int measuredWidth = skippedFirstPass ? 0 : child.getMeasuredWidth();
-                if (canSlide && child != mSlideableView) {
-                    if (lp.width < 0 && (measuredWidth > fixedPanelWidthLimit || lp.weight > 0)) {
-                        // Fixed panels in a sliding configuration should
-                        // be clamped to the fixed panel limit.
-                        final int childHeightSpec;
-                        if (skippedFirstPass) {
-                            // Do initial height measurement if we skipped measuring this view
-                            // the first time around.
-                            if (lp.height == LayoutParams.WRAP_CONTENT) {
-                                childHeightSpec = MeasureSpec.makeMeasureSpec(maxLayoutHeight,
-                                        MeasureSpec.AT_MOST);
-                            } else if (lp.height == LayoutParams.FILL_PARENT) {
-                                childHeightSpec = MeasureSpec.makeMeasureSpec(maxLayoutHeight,
-                                        MeasureSpec.EXACTLY);
-                            } else {
-                                childHeightSpec = MeasureSpec.makeMeasureSpec(lp.height,
-                                        MeasureSpec.EXACTLY);
-                            }
-                        } else {
-                            childHeightSpec = MeasureSpec.makeMeasureSpec(
-                                    child.getMeasuredHeight(), MeasureSpec.EXACTLY);
-                        }
-                        final int childWidthSpec = MeasureSpec.makeMeasureSpec(
-                                fixedPanelWidthLimit, MeasureSpec.EXACTLY);
-                        child.measure(childWidthSpec, childHeightSpec);
-                    }
-                } else if (lp.weight > 0) {
-                    int childHeightSpec;
-                    if (lp.width == 0) {
-                        // This was skipped the first time; figure out a real height spec.
-                        if (lp.height == LayoutParams.WRAP_CONTENT) {
-                            childHeightSpec = MeasureSpec.makeMeasureSpec(maxLayoutHeight,
-                                    MeasureSpec.AT_MOST);
-                        } else if (lp.height == LayoutParams.FILL_PARENT) {
-                            childHeightSpec = MeasureSpec.makeMeasureSpec(maxLayoutHeight,
-                                    MeasureSpec.EXACTLY);
-                        } else {
-                            childHeightSpec = MeasureSpec.makeMeasureSpec(lp.height,
-                                    MeasureSpec.EXACTLY);
-                        }
-                    } else {
-                        childHeightSpec = MeasureSpec.makeMeasureSpec(
-                                child.getMeasuredHeight(), MeasureSpec.EXACTLY);
-                    }
-
-                    if (canSlide) {
-                        // Consume available space
-                        final int horizontalMargin = lp.leftMargin + lp.rightMargin;
-                        final int newWidth = widthAvailable - horizontalMargin;
-                        final int childWidthSpec = MeasureSpec.makeMeasureSpec(
-                                newWidth, MeasureSpec.EXACTLY);
-                        if (measuredWidth != newWidth) {
-                            child.measure(childWidthSpec, childHeightSpec);
-                        }
-                    } else {
-                        // Distribute the extra width proportionally  similar to LinearLayout
-                        final int widthToDistribute = Math.max(0, widthRemaining);
-                        final int addedWidth = (int) (lp.weight * widthToDistribute / weightSum);
-                        final int childWidthSpec = MeasureSpec.makeMeasureSpec(
-                                measuredWidth + addedWidth, MeasureSpec.EXACTLY);
-                        child.measure(childWidthSpec, childHeightSpec);
-                    }
-                }
-            }
-        }
-
-        final int measuredWidth = widthSize;
-        final int measuredHeight = layoutHeight + getPaddingTop() + getPaddingBottom();
-
-        setMeasuredDimension(measuredWidth, measuredHeight);
-        mCanSlide = canSlide;
-
-        if (mDragHelper.getViewDragState() != ViewDragHelper.STATE_IDLE && !canSlide) {
+        if (mDragHelper.getViewDragState() != ViewDragHelper.STATE_IDLE) {
             // Cancel scrolling in progress, it's no longer relevant.
             mDragHelper.abort();
         }
@@ -426,19 +227,13 @@ public class SlideLayout extends ViewGroup {
         for (int i = 0; i < childCount; i++) {
             final View child = getChildAt(i);
 
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-
             final LayoutParams lp = (LayoutParams) child.getLayoutParams();
 
             final int childWidth = child.getMeasuredWidth();
             int offset = 0;
 
             if (lp.slideable) {
-                final int margin = lp.leftMargin + lp.rightMargin;
-                final int range = Math.min(nextXStart,
-                        width - paddingEnd) - xStart - margin;
+                final int range = childWidth;
                 mSlideRange = range;
                 final int lpMargin = lp.leftMargin;
                 final int pos = (int) (range * mSlideOffset);
@@ -456,10 +251,6 @@ public class SlideLayout extends ViewGroup {
             child.layout(childLeft, paddingTop, childRight, childBottom);
 
             nextXStart += child.getWidth();
-        }
-
-        if (mFirstLayout) {
-            updateObscuredViewsVisibility(mSlideableView);
         }
 
         mFirstLayout = false;
@@ -485,16 +276,6 @@ public class SlideLayout extends ViewGroup {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = MotionEventCompat.getActionMasked(ev);
-
-        // Preserve the open state based on the last view that was touched.
-        if (!mCanSlide && action == MotionEvent.ACTION_DOWN && getChildCount() > 1) {
-            // After the first things will be slideable.
-            final View secondChild = getChildAt(1);
-            if (secondChild != null) {
-                mPreservedOpenState = !mDragHelper.isViewUnder(secondChild,
-                        (int) ev.getX(), (int) ev.getY());
-            }
-        }
 
         if (!mCanSlide || (mIsUnableToDrag && action != MotionEvent.ACTION_DOWN)) {
             mDragHelper.cancel();
@@ -594,10 +375,6 @@ public class SlideLayout extends ViewGroup {
                 && index >= p.getAdapter().getCount() - 1);
     }
 
-    public boolean isSlideable() {
-        return mCanSlide;
-    }
-
     private void onPanelDragged(int newLeft) {
         if (mSlideableView == null) {
             // This can happen if we're aborting motion during layout because everything now fits.
@@ -617,17 +394,8 @@ public class SlideLayout extends ViewGroup {
 
     @Override
     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
-        final LayoutParams lp = (LayoutParams) child.getLayoutParams();
         boolean result;
         final int save = canvas.save(Canvas.CLIP_SAVE_FLAG);
-
-        if (mCanSlide && !lp.slideable && mSlideableView != null) {
-            // Clip against the slider; no sense drawing what will immediately be covered.
-            canvas.getClipBounds(mTmpRect);
-            mTmpRect.right = Math.min(mTmpRect.right, mSlideableView.getLeft());
-
-            canvas.clipRect(mTmpRect);
-        }
 
         if (Build.VERSION.SDK_INT >= 11) {
             result = super.drawChild(canvas, child, drawingTime);
@@ -645,31 +413,6 @@ public class SlideLayout extends ViewGroup {
 
     private void invalidateChildRegion(View v) {
         IMPL.invalidateChildRegion(this, v);
-    }
-
-    /**
-     * Smoothly animate mDraggingPane to the target X position within its range.
-     *
-     * @param slideOffset position to animate to
-     * @param velocity    initial velocity in case of fling, or 0.
-     */
-    boolean smoothSlideTo(float slideOffset, int velocity) {
-        if (!mCanSlide) {
-            // Nothing to do.
-            return false;
-        }
-
-        final LayoutParams lp = (LayoutParams) mSlideableView.getLayoutParams();
-
-        int startBound = getPaddingLeft() + lp.leftMargin;
-        int x = (int) (startBound + slideOffset * mSlideRange);
-
-        if (mDragHelper.smoothSlideViewTo(mSlideableView, x, mSlideableView.getTop())) {
-            setAllChildrenVisible();
-            ViewCompat.postInvalidateOnAnimation(this);
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -692,7 +435,7 @@ public class SlideLayout extends ViewGroup {
     public void draw(Canvas c) {
         super.draw(c);
 
-        final View shadowView = getChildCount() > 1 ? getChildAt(1) : null;
+        final View shadowView = mSlideableView;
         if (shadowView == null || mShadowDrawable == null) {
             // No need to draw a shadow if we don't have one.
             return;
@@ -707,10 +450,6 @@ public class SlideLayout extends ViewGroup {
 
         mShadowDrawable.setBounds(left, top, right, bottom);
         mShadowDrawable.draw(c);
-    }
-
-    public void setSlideable(boolean b) {
-        mCanSlide = b;
     }
 
     @Override
@@ -747,7 +486,6 @@ public class SlideLayout extends ViewGroup {
         public void onViewDragStateChanged(int state) {
             if (mDragHelper.getViewDragState() == ViewDragHelper.STATE_IDLE) {
                 if (mSlideOffset == 0) {
-                    updateObscuredViewsVisibility(mSlideableView);
                     mPreservedOpenState = false;
                 } else {
                     mPreservedOpenState = true;
@@ -758,8 +496,6 @@ public class SlideLayout extends ViewGroup {
         @Override
         public void onViewCaptured(View capturedChild, int activePointerId) {
             if (null != mSlideListener) mSlideListener.onViewCaptured();
-            // Make all child views visible in preparation for sliding things around
-            setAllChildrenVisible();
         }
 
         @Override

@@ -1,14 +1,9 @@
 <resources>
-
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="SlideTheme" parent="@android:style/Theme.NoTitleBar">
         <item name="android:windowAnimationStyle">@style/ActivityTransitions</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowBackground">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
     <style name="ActivityTransitions" parent="@android:style/Animation">
         <item name="android:activityOpenEnterAnimation">@anim/open_enter</item>
